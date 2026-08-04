@@ -1,0 +1,34 @@
+# Railway-tuned SearXNG settings.
+#
+# The upstream image ships this file as settings.template.yml and its
+# entrypoint copies it to /etc/searxng/settings.yml on first boot only,
+# replacing "ultrasecretkey" with a random value at that moment. Keep that
+# literal here so the upstream substitution still fires; SEARXNG_SECRET
+# overrides it afterwards either way (searx/settings_defaults.py).
+use_default_settings: true
+
+server:
+  secret_key: "ultrasecretkey"
+
+  # Proxy image thumbnails through the instance instead of leaking the
+  # visitor's IP to the origin host.
+  image_proxy: true
+
+  # The limiter is SearXNG's bot-detection / rate-limit layer and it is the
+  # ONLY consumer of the valkey connection (searx/limiter.py, searx/botdetection).
+  # It requires a valkey/redis server. Leaving it off is what makes this a
+  # single-service template: with limiter false and public_instance false,
+  # searx/limiter.py:initialize() returns before installing anything.
+  limiter: false
+  public_instance: false
+
+search:
+  # Upstream defaults this to [html] ONLY, so /search?format=json answers
+  # 403 Forbidden on a stock instance. There is no environment variable for
+  # it -- searx/settings_loader.py reads only SEARXNG_SETTINGS_PATH -- so the
+  # API can be enabled here and nowhere else.
+  formats:
+    - html
+    - json
+    - csv
+    - rss
